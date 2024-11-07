@@ -1,2 +1,13 @@
-hermes-gui
+# hermes-gui
 
+## dependencies 
+
+- NPM (node package manager)
+- IONIC
+
+``` sudo dnf install npm ```
+```sudo npm install -g @ionic/cli ```
+
+## run
+
+``` ionic serve ```
