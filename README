@@ -5,9 +5,16 @@
 - NPM (node package manager)
 - IONIC
 
-``` sudo dnf install npm ```
-```sudo npm install -g @ionic/cli ```
+```bash 
+sudo dnf install npm
+```
+
+```bash
+ sudo npm install -g @ionic/cli
+```
 
 ## run
 
-``` ionic serve ```
+```bash
+ ionic serve
+```
