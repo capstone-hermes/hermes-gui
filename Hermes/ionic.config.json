@@ -1,7 +1,0 @@
-{
-  "name": "Hermes",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "react-vite"
-}
