@@ -3,17 +3,6 @@ import UrlInput from "../components/UrlInput";
 import TestList from "../components/TestList";
 import { useToast } from "../hooks/use-toast";
 
-// const Home: React.FC = () => {
-//   return (
-//     <div className="flex h-screen items-center justify-center bg-gray-900 text-white">
-//       <h1 className="text-4xl font-bold">Hello, Ionic + React + Tailwind! 🚀</h1>
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-
 const Home = () => {
   const { toast } = useToast();
   const [tests, setTests] = useState([
