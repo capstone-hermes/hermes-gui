@@ -1,4 +1,4 @@
-# 🚀 Mon Projet Ionic + React + Tailwind CSS
+# 🚀 Hermes-GUI
 
 Bienvenue dans **Mon Projet Ionic**, une application construite avec **Ionic**, **React**, et **Tailwind CSS**. Ce projet fournit une base solide pour démarrer une application hybride performante et stylisée.
 
