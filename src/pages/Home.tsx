@@ -1,10 +1,10 @@
 import { useState } from "react";
 import UrlInput from "../components/UrlInput";
 import TestList from "../components/TestList";
-import { useToast } from "../hooks/use-toast";
+import { runScan } from "../service/api.service";// Import de runScan
+import { toast } from 'react-hot-toast';
 
 const Home = () => {
-  const { toast } = useToast();
   const [tests, setTests] = useState([
     {
       id: "1",
@@ -26,12 +26,50 @@ const Home = () => {
     },
   ]);
 
-  const handleUrlSubmit = (url: string) => {
-    toast({
-      title: "Analyse démarrée",
-      description: "L'analyse de sécurité est en cours...",
+  const [isScanning, setIsScanning] = useState(false);
+
+  const handleUrlSubmit = async (url: string) => {
+    console.log(`Analyse démarrée pour ${url}...`); // Afficher un message dans la console
+
+    toast.loading(`Analyse de ${url} en cours...`, {
+      position: 'bottom-center',
+      style: {
+        backgroundColor: '#2A2E3B',
+        color: 'white',
+        border: '2px solid #00FF9C'
+      }
     });
-    
+
+    try {
+      const response = await runScan(url); // Appel de runScan
+
+      console.log("Réponse du scanner : ", response); // Afficher la réponse dans la console
+
+      console.log("Analyse terminée pour l'URL:", url);
+
+      toast.success('Analyse terminée : ${response.output}', {
+        position: 'bottom-center',
+        style: {
+          backgroundColor: '#2A2E3B',
+          color: 'white',
+          border: '2px solid #00FF9C'
+        }
+      });
+      setIsScanning(true);
+    } catch (error) {
+      setIsScanning(false);
+      console.error("Erreur lors de l'analyse :", error);
+      toast.error('Erreur: Impossible de lancer le test', {
+        position: 'bottom-center',
+        style: {
+          backgroundColor: '#2A2E3B',
+          color: 'white',
+          border: '2px solid #FF1F00'
+        }
+      });
+    }
+  };
+
     // Simulate tests running
     // setTests((prev) =>
     //   prev.map((test) => ({ ...test, status: "running" as const }))
@@ -46,7 +84,7 @@ const Home = () => {
     //     }))
     //   );
     // }, 3000);
-  };
+  // };
 
   return (
     <div className="min-h-screen bg-cyber-black p-8">
@@ -62,7 +100,7 @@ const Home = () => {
 
         <main className="space-y-8">
           <UrlInput onSubmit={handleUrlSubmit} />
-          <TestList tests={tests} />
+          {isScanning && <TestList tests={tests} />}
         </main>
       </div>
     </div>
