@@ -1,37 +1,42 @@
 import { useState } from "react";
 import UrlInput from "../components/UrlInput";
 import TestList from "../components/TestList";
-import { runScan } from "../service/api.service";// Import de runScan
+import { runScan } from "../service/api.service";
 import { toast } from 'react-hot-toast';
 
+interface Finding {
+  id: string;
+  chapter: string;
+  section?: string;
+  description: string;
+  url?: string;
+}
+
+interface ScanResponse {
+  data: {
+    url: string;
+    timestamp: string;
+    findings: Finding[];
+  }
+}
+
 const Home = () => {
-  const [tests, setTests] = useState([
-    {
-      id: "1",
-      name: "Test XSS",
-      description: "Vérification des vulnérabilités XSS",
-      status: "pending" as const,
-    },
-    {
-      id: "2",
-      name: "Test SQL Injection",
-      description: "Recherche d'injections SQL possibles",
-      status: "pending" as const,
-    },
-    {
-      id: "3",
-      name: "Test CSRF",
-      description: "Vérification des protections CSRF",
-      status: "pending" as const,
-    },
-  ]);
+  const [tests, setTests] = useState<Array<{
+    id: string;
+    name: string;
+    description: string;
+    status: "pending" | "running" | "completed" | "failed";
+  }>>([]);
 
   const [isScanning, setIsScanning] = useState(false);
 
   const handleUrlSubmit = async (url: string) => {
-    console.log(`Analyse démarrée pour ${url}...`); // Afficher un message dans la console
-
-    toast.loading(`Analyse de ${url} en cours...`, {
+    console.log(`Analyse démarrée pour ${url}...`);
+    setIsScanning(false);
+    setTests([]);
+    
+    // Show loading toast
+    const toastId = toast.loading(`Analyse de ${url} en cours...`, {
       position: 'bottom-center',
       style: {
         backgroundColor: '#2A2E3B',
@@ -41,26 +46,61 @@ const Home = () => {
     });
 
     try {
-      const response = await runScan(url); // Appel de runScan
-
-      console.log("Réponse du scanner : ", response); // Afficher la réponse dans la console
-
-      console.log("Analyse terminée pour l'URL:", url);
-
-      toast.success('Analyse terminée : ${response.output}', {
+      // Call the scanner API
+      const response = await runScan(url) as ScanResponse;
+      console.log("Réponse du scanner : ", response);
+      
+      // Get data from the response
+      const { data } = response;
+      const { findings, url: scannedUrl, timestamp } = data;
+      
+      // Format scan time for display
+      const scanTime = new Date(timestamp).toLocaleString();
+      
+      // Create test items from findings
+      const newTests = findings.map((finding) => ({
+        id: finding.id,
+        name: `${finding.id} - ${finding.chapter}`,
+        description: finding.description,
+        section: finding.section,
+        url: finding.url,
+        status: "completed" as const,
+      }));
+      
+      // If there are no findings, add a default "No vulnerabilities found" test
+      if (newTests.length === 0) {
+        newTests.push({
+          id: "0",
+          name: "Scan Complete",
+          description: "No vulnerabilities were found in the scan",
+          section: undefined,
+          url: undefined,
+          status: "completed" as const,
+        });
+      }
+      
+      // Update tests state
+      setTests(newTests);
+      setIsScanning(true);
+      
+      // Update toast with success message
+      toast.success(`Scan completed for ${scannedUrl} at ${scanTime}`, {
         position: 'bottom-center',
+        id: toastId,
         style: {
           backgroundColor: '#2A2E3B',
           color: 'white',
           border: '2px solid #00FF9C'
         }
       });
-      setIsScanning(true);
     } catch (error) {
-      setIsScanning(false);
       console.error("Erreur lors de l'analyse :", error);
-      toast.error('Erreur: Impossible de lancer le test', {
+      setIsScanning(false);
+      
+      // Update toast with error message
+      toast.error('Error: Unable to complete the scan', {
         position: 'bottom-center',
+        id: toastId,
         style: {
           backgroundColor: '#2A2E3B',
           color: 'white',
