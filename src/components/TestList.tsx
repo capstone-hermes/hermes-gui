@@ -5,15 +5,16 @@ interface Test {
   name: string;
   description: string;
   status: "pending" | "running" | "completed" | "failed";
-  url?: string; // Optional URL for the finding
-  section?: string; // Optional section for more context
+  url?: string;
+  section?: string;
 }
 
 interface TestListProps {
   tests: Test[];
+  onStatusChange: (id: string, currentStatus: Test["status"]) => void;
 }
 
-const TestList = ({ tests }: TestListProps) => {
+const TestList = ({ tests, onStatusChange }: TestListProps) => {
   return (
     <div className="w-full max-w-2xl mx-auto mt-8 space-y-4 animate-slideUp">
       <h2 className="text-xl font-['JetBrains_Mono'] text-white mb-4">
@@ -30,7 +31,13 @@ const TestList = ({ tests }: TestListProps) => {
             <h3 className="text-lg font-['JetBrains_Mono'] text-white">
               {test.name}
             </h3>
-            <StatusIcon status={test.status} />
+            {/* Icône cliquable pour basculer le statut */}
+            <div 
+              onClick={() => onStatusChange(test.id, test.status)} 
+              className="cursor-pointer"
+            >
+              <StatusIcon status={test.status} />
+            </div>
           </div>
           
           {test.section && (
