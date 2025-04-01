@@ -137,11 +137,20 @@ const Home = () => {
             Outil d'analyse de sécurité pour pentesteurs juniors
           </p>
         </header>
+        <main className="space-y-2">
+          <UrlInput onSubmit={handleUrlSubmit} />
+          {isScanning && (
+          <div className="overflow-y-auto pb-16 scrollbar-hide" style={{ height: 'calc(100vh - 200px)'}}>
+            <TestList tests={tests} />
+          </div>
+          )}
+        </main>
 
-        <main className="space-y-8">
+
+        {/* <main className="space-y-8">
           <UrlInput onSubmit={handleUrlSubmit} />
           {isScanning && <TestList tests={tests} />}
-        </main>
+        </main> */}
       </div>
     </div>
   );
