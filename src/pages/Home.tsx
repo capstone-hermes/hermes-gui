@@ -109,23 +109,6 @@ const Home = () => {
       });
     }
   };
-
-    // Simulate tests running
-    // setTests((prev) =>
-    //   prev.map((test) => ({ ...test, status: "running" as const }))
-    // );
-
-    // // Simulate test completion after delay
-    // setTimeout(() => {
-    //   setTests((prev) =>
-    //     prev.map((test) => ({
-    //       ...test,
-    //       status: Math.random() > 0.5 ? "completed" : "failed",
-    //     }))
-    //   );
-    // }, 3000);
-  // };
-
   return (
     <div className="min-h-screen bg-cyber-black p-8">
       <div className="max-w-4xl mx-auto">
@@ -145,12 +128,6 @@ const Home = () => {
           </div>
           )}
         </main>
-
-
-        {/* <main className="space-y-8">
-          <UrlInput onSubmit={handleUrlSubmit} />
-          {isScanning && <TestList tests={tests} />}
-        </main> */}
       </div>
     </div>
   );
