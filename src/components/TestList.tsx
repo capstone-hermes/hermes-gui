@@ -1,10 +1,12 @@
-import { Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle, ExternalLink } from "lucide-react";
 
 interface Test {
   id: string;
   name: string;
   description: string;
   status: "pending" | "running" | "completed" | "failed";
+  url?: string; // Optional URL for the finding
+  section?: string; // Optional section for more context
 }
 
 interface TestListProps {
@@ -14,6 +16,10 @@ interface TestListProps {
 const TestList = ({ tests }: TestListProps) => {
   return (
     <div className="w-full max-w-2xl mx-auto mt-8 space-y-4 animate-slideUp">
+      <h2 className="text-xl font-['JetBrains_Mono'] text-white mb-4">
+        Scan Results <span className="text-cyber-green">({tests.length} findings)</span>
+      </h2>
+      
       {tests.map((test) => (
         <div
           key={test.id}
@@ -26,7 +32,30 @@ const TestList = ({ tests }: TestListProps) => {
             </h3>
             <StatusIcon status={test.status} />
           </div>
+          
+          {test.section && (
+            <div className="mt-1 mb-2">
+              <span className="text-xs bg-cyber-green/20 text-cyber-green px-2 py-1 rounded">
+                {test.section}
+              </span>
+            </div>
+          )}
+          
           <p className="mt-2 text-gray-400 text-sm">{test.description}</p>
+          
+          {test.url && (
+            <div className="mt-3 flex items-center text-xs text-cyber-green">
+              <ExternalLink className="w-3 h-3 mr-1" />
+              <a 
+                href={test.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                {test.url}
+              </a>
+            </div>
+          )}
         </div>
       ))}
     </div>
