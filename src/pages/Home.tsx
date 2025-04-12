@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UrlInput from "../components/UrlInput";
 import TestList from "../components/TestList";
 import { runScan } from "../service/api.service";
 import { toast } from 'react-hot-toast';
+import { csvToJson } from "../lib/csvToJson";
 
 // Définition de l'interface pour un résultat de scan (finding)
 interface Finding {
@@ -22,6 +23,21 @@ interface ScanResponse {
   }
 }
 
+// Interface pour les données ASVS
+interface ASVSData {
+  chapter_id: string;
+  chapter_name: string;
+  section_id: string;
+  section_name: string;
+  req_id: string;
+  req_description: string;
+  level1: string;
+  level2: string;
+  level3: string;
+  cwe: string;
+  nist?: string;
+}
+
 const Home = () => {
   // State pour stocker la liste des tests (résultats)
   const [tests, setTests] = useState<Array<{
@@ -32,6 +48,36 @@ const Home = () => {
     url?: string;
     section?: string;
   }>>([]);
+
+  const [asvsData, setAsvsData] = useState<ASVSData[]>([]);
+  const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
+  
+
+  useEffect(() => {
+    const loadCsvData = async () => {
+      try {
+        const data = await csvToJson("/ASVS.csv");
+        setAsvsData(data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des données ASVS :", error);
+      }
+    };
+
+    loadCsvData();
+  }, []);
+
+  const toggleChapter = (chapter: string) => {
+    setExpandedChapter(expandedChapter === chapter ? null : chapter);
+  };
+
+  const groupedData = groupByChapter(asvsData);
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // État pour gérer la modale
+
+  // Fonction pour ouvrir/fermer la modale
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
   
   // State pour gérer l'état de l'analyse (scan)
   const [isScanning, setIsScanning] = useState(false);
@@ -141,6 +187,12 @@ const Home = () => {
           <p className="text-gray-400">
             Outil d'analyse de sécurité pour pentesteurs juniors
           </p>
+          <button
+            onClick={toggleModal}
+            className="absolute top-2 right-2 px-4 py-2 rounded bg-cyber-gray/50 hover:bg-cyber-black text-cyber-green transition ring-1 ring-cyber-green/20"
+          >
+            OWASP List
+          </button>
         </header>
         <main className="space-y-2">
           {/* Composant pour saisir l'URL */}
@@ -154,8 +206,61 @@ const Home = () => {
           )}
         </main>
       </div>
+      {isModalOpen && (
+        <div className="fixed top-0 right-0 h-full w-80 bg-cyber-gray text-white shadow-lg z-50 transform transition-transform duration-300">
+          <div className="p-4 flex justify-between items-center border-b border-gray-700">
+            <h2 className="text-lg font-bold">OWASP List</h2>
+            <button
+              onClick={toggleModal}
+              className="text-cyber-green hover:text-cyber-green/20 transition"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="p-4 overflow-y-auto h-[calc(100%-64px)] scrollbar-hide">
+            {Object.keys(groupedData).length > 0 ? (
+              Object.entries(groupedData).map(([chapterName, items]) => (
+                <div key={chapterName} className="mb-4">
+                  {/* Bouton pour afficher/masquer les sections d'un chapitre */}
+                  <button
+                    onClick={() => toggleChapter(chapterName)}
+                    className="w-full text-left text-cyber-green font-bold bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition"
+                  >
+                    {items[0].chapter_id} - {chapterName}
+                  </button>
+                  {expandedChapter === chapterName && (
+                    <div className="mt-2 pl-4">
+                      {items.map((item, index) => (
+                        <div key={index} className="mb-4">
+                          <h4 className="text-gray-300 font-semibold">
+                      {item.section_name} ({item.req_id})
+                          </h4>
+                          <p className="text-gray-400">{item.req_description}</p>
+                    </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <p>Chargement des données...</p>
+      )}
+    </div>
+        </div>
+      )}
     </div>
   );
 };
+
+const groupByChapter = (data: ASVSData[]) => {
+  return data.reduce((acc, item) => {
+    if (!acc[item.chapter_name]) {
+      acc[item.chapter_name] = [];
+    }
+    acc[item.chapter_name].push(item);
+    return acc;
+  }, {} as Record<string, ASVSData[]>);
+};
+
 
 export default Home;
