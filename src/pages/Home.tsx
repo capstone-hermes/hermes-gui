@@ -4,7 +4,7 @@ import TestList from "../components/TestList";
 import { runScan } from "../service/api.service";
 import { toast } from "react-hot-toast";
 import { csvToJson } from "../lib/csvToJson";
-import { FiAlertCircle } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiCircle } from "react-icons/fi";
 
 // Définition de l'interface pour un résultat de scan (finding)
 interface Finding {
@@ -54,6 +54,11 @@ const Home = () => {
 
   const [asvsData, setAsvsData] = useState<ASVSData[]>([]);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
+  const [checkedAsvs, setCheckedAsvs] = useState<Record<string, boolean>>({});
+
+  const toggleCheck = (reqId: string) => {
+    setCheckedAsvs(prev => ({ ...prev, [reqId]: !prev[reqId] }));
+};
 
   useEffect(() => {
     const loadCsvData = async () => {
@@ -124,7 +129,7 @@ const Home = () => {
         description: finding.description,
         section: finding.section,
         url: finding.url,
-        status: "pending" as const,
+        status: "completed" as const,
       }));
 
       // Si aucun finding n'est trouvé, on ajoute un test par défaut
@@ -135,7 +140,7 @@ const Home = () => {
           description: "No vulnerabilities were found in the scan",
           section: undefined,
           url: undefined,
-          status: "pending" as const,
+          status: "completed" as const,
         });
       }
 
@@ -295,14 +300,19 @@ return (
                         </summary>
                         <div className="mt-2 pl-4">
                           {sectionItems.map((item, index) => (
-                            <div key={index} className="mb-4 bg-cyber-black border border-cyber-green p-3 rounded">
-                              <h4 className="text-gray-300 font-semibold">
-                                {item.req_id}
-                              </h4>
-                              <p className="text-gray-400">
-                                {item.req_description}
-                              </p>
+                            <div key={index} className="mb-4 bg-cyber-black border border-cyber-green p-3 rounded flex items-start justify-between">
+                              <div>
+                                <h4 className="text-gray-300 font-semibold">{item.req_id}</h4>
+                                <p className="text-gray-400">{item.req_description}</p>
+                              </div>
+                            <div onClick={() => toggleCheck(item.req_id)} className="cursor-pointer">
+                              {checkedAsvs[item.req_id] ? (
+                                <FiCheckCircle className="text-cyber-green" size={20} />
+                              ) : (
+                                <FiCircle className="text-cyber-green" size={20} />
+                              )}
                             </div>
+                        </div>
                           ))}
                         </div>
                       </details>
