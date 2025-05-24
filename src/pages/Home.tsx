@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import UrlInput from "../components/UrlInput";
 import TestList from "../components/TestList";
 import { runScan } from "../service/api.service";
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 import { csvToJson } from "../lib/csvToJson";
+import { FiAlertCircle } from "react-icons/fi";
 
 // Définition de l'interface pour un résultat de scan (finding)
 interface Finding {
@@ -20,7 +21,7 @@ interface ScanResponse {
     url: string;
     timestamp: string;
     findings: Finding[];
-  }
+  };
 }
 
 // Interface pour les données ASVS
@@ -40,18 +41,19 @@ interface ASVSData {
 
 const Home = () => {
   // State pour stocker la liste des tests (résultats)
-  const [tests, setTests] = useState<Array<{
-    id: string;
-    name: string;
-    description: string;
-    status: "pending" | "running" | "completed" | "failed";
-    url?: string;
-    section?: string;
-  }>>([]);
+  const [tests, setTests] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      status: "pending" | "running" | "completed" | "failed";
+      url?: string;
+      section?: string;
+    }>
+  >([]);
 
   const [asvsData, setAsvsData] = useState<ASVSData[]>([]);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
-  
 
   useEffect(() => {
     const loadCsvData = async () => {
@@ -66,19 +68,23 @@ const Home = () => {
     loadCsvData();
   }, []);
 
+    const [showOwasp, setShowOwasp] = useState(window.innerWidth >= 1024);
+
+    useEffect(() => {
+    const handleResize = () => {
+      setShowOwasp(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const toggleChapter = (chapter: string) => {
     setExpandedChapter(expandedChapter === chapter ? null : chapter);
   };
 
   const groupedData = groupByChapter(asvsData);
 
-  const [isModalOpen, setIsModalOpen] = useState(false); // État pour gérer la modale
-
-  // Fonction pour ouvrir/fermer la modale
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-  
   // State pour gérer l'état de l'analyse (scan)
   const [isScanning, setIsScanning] = useState(false);
 
@@ -88,29 +94,29 @@ const Home = () => {
     // Réinitialisation des tests et de l'état de scan avant le début de l'analyse
     setTests([]);
     setIsScanning(false);
-    
+
     // Affichage d'un toast de chargement
     const toastId = toast.loading(`Analyse de ${url} en cours...`, {
-      position: 'bottom-center',
+      position: "bottom-center",
       style: {
-        backgroundColor: '#2A2E3B',
-        color: 'white',
-        border: '2px solid #00FF9C'
-      }
+        backgroundColor: "#2A2E3B",
+        color: "white",
+        border: "2px solid #00FF9C",
+      },
     });
 
     try {
       // Appel de l'API de scan
-      const response = await runScan(url) as ScanResponse;
+      const response = (await runScan(url)) as ScanResponse;
       console.log("Réponse du scanner : ", response);
-      
+
       // Récupération des données de la réponse
       const { data } = response;
       const { findings, url: scannedUrl, timestamp } = data;
-      
+
       // Formatage de la date du scan pour affichage
       const scanTime = new Date(timestamp).toLocaleString();
-      
+
       // Création d'un tableau de tests à partir des findings
       const newTests = findings.map((finding) => ({
         id: finding.id,
@@ -120,7 +126,7 @@ const Home = () => {
         url: finding.url,
         status: "pending" as const,
       }));
-      
+
       // Si aucun finding n'est trouvé, on ajoute un test par défaut
       if (newTests.length === 0) {
         newTests.push({
@@ -132,41 +138,44 @@ const Home = () => {
           status: "pending" as const,
         });
       }
-      
+
       // Mise à jour du state avec les nouveaux tests
       setTests(newTests);
       // Passage de l'état de scan à true pour afficher les résultats
       setIsScanning(true);
-      
+
       // Affichage d'un toast de succès avec les informations du scan
       toast.success(`Scan completed for ${scannedUrl} at ${scanTime}`, {
-        position: 'bottom-center',
+        position: "bottom-center",
         id: toastId,
         style: {
-          backgroundColor: '#2A2E3B',
-          color: 'white',
-          border: '2px solid #00FF9C'
-        }
+          backgroundColor: "#2A2E3B",
+          color: "white",
+          border: "2px solid #00FF9C",
+        },
       });
     } catch (error) {
       // Gestion de l'erreur lors de l'analyse
       console.error("Erreur lors de l'analyse :", error);
       setIsScanning(false);
       // Affichage d'un toast d'erreur
-      toast.error('Error: Unable to complete the scan', {
-        position: 'bottom-center',
+      toast.error("Error: Unable to complete the scan", {
+        position: "bottom-center",
         id: toastId,
         style: {
-          backgroundColor: '#2A2E3B',
-          color: 'white',
-          border: '2px solid #FF1F00'
-        }
+          backgroundColor: "#2A2E3B",
+          color: "white",
+          border: "2px solid #FF1F00",
+        },
       });
     }
   };
 
   // Fonction pour basculer le statut d'un test entre "completed" et "pending"
-  const handleStatusChange = (id: string, currentStatus: "pending" | "running" | "completed" | "failed") => {
+  const handleStatusChange = (
+    id: string,
+    currentStatus: "pending" | "running" | "completed" | "failed"
+  ) => {
     // Si le statut actuel est "completed", le passer à "pending", sinon à "completed"
     const newStatus = currentStatus === "completed" ? "pending" : "completed";
     // Mise à jour du state en modifiant uniquement le test concerné
@@ -177,80 +186,145 @@ const Home = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-cyber-black p-8">
-      <div className="max-w-4xl mx-auto">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4 font-['JetBrains_Mono']">
-            PenTest Assistant
-          </h1>
-          <p className="text-gray-400">
-            Outil d'analyse de sécurité pour pentesteurs juniors
-          </p>
-          <button
-            onClick={toggleModal}
-            className="absolute top-2 right-2 px-4 py-2 rounded bg-cyber-gray/50 hover:bg-cyber-black text-cyber-green transition ring-1 ring-cyber-green/20"
-          >
-            OWASP List
+return (
+  <div className="min-h-screen bg-cyber-black p-8 relative">
+    {/* Panneau gauche fixe "How does it work?" */}
+    <div className="hidden md:block fixed left-10 top-10 w-64 bg-cyber-gray/50 p-4 rounded shadow-lg">
+      <h2 className="text-white text-xl font-bold mb-2">How does it work?</h2>
+      <p className="text-gray-400 text-sm">
+        This site analyzes the security of a URL. Enter a URL to start the scan and view the results.
+        You can also check all the vulnerabilities from the OWASP list and test them on the site below.
+      </p>
+      <div className="mt-2 flex gap-2">
+        <a
+          href="https://github.com/capstone-hermes/hermes-fullstack/wiki"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <button className="px-3 py-1 bg-cyber-gray hover:bg-cyber-black text-cyber-green rounded transition text-sm">
+            Documentation
           </button>
+        </a>
+        <a
+          href="http://client"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <button className="px-3 py-1 bg-cyber-gray hover:bg-cyber-black text-cyber-green rounded transition text-sm">
+            Website
+          </button>
+        </a>
+      </div>
+    </div>
+    
+    {/* Nouveau panneau gauche "Who we are?" */}
+    <div className="hidden md:block fixed left-10 bottom-10 w-64 bg-cyber-gray/50 p-4 rounded shadow-lg">
+      <h2 className="text-white text-xl font-bold mb-2">Who we are?</h2>
+      <p className="text-gray-400 text-sm">
+        We are a team of passionate Epitech students working on our final-year capstone project, focused on cybersecurity and ethical hacking. This tool was built by learners, for learners — to make web security more accessible, educational, and hands-on.
+      </p>
+      <a
+        href="https://github.com/capstone-hermes"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <button className="mt-2 px-3 py-1 bg-cyber-gray hover:bg-cyber-black text-cyber-green rounded transition text-sm">
+          GitHub
+        </button>
+      </a>
+    </div>
+    
+    {/* Contenu central */}
+    <div className="flex max-w-6xl mx-auto h-[calc(100vh-32px)] justify-center">
+      <div className="flex-1 flex flex-col mx-4">
+        <header className="text-center mb-4">
+          <img
+            src="../../public/logo.png"
+            alt="Logo"
+            className="mx-auto mb-4 w-96 rounded-lg shadow-lg"
+          />
+          <p className="text-white">
+            Security analysis tool for junior pentesters
+          </p>
         </header>
-        <main className="space-y-2">
-          {/* Composant pour saisir l'URL */}
+        <main className="flex-grow overflow-y-auto scrollbar-hide p-8 pb-8">
           <UrlInput onSubmit={handleUrlSubmit} />
-          {/* Affichage de la liste des tests si au moins un test existe */}
-          {tests.length > 0 && (
-            <div className="overflow-y-auto pb-16 scrollbar-hide" style={{ height: 'calc(100vh - 200px)'}}>
-              {/* Passage du callback pour la modification du statut */}
-              <TestList tests={tests} onStatusChange={handleStatusChange} />
+          {tests.length > 0 ? (
+            <TestList tests={tests} onStatusChange={handleStatusChange} />
+          ) : (
+            <div className="flex flex-col items-center justify-center mt-32 text-gray-400">
+              <FiAlertCircle className="text-6xl mb-4 text-cyber-green" />
+              <p className="text-lg font-medium">No scan processed</p>
             </div>
           )}
         </main>
       </div>
-      {isModalOpen && (
-        <div className="fixed top-0 right-0 h-full w-80 bg-cyber-gray text-white shadow-lg z-50 transform transition-transform duration-300">
-          <div className="p-4 flex justify-between items-center border-b border-gray-700">
-            <h2 className="text-lg font-bold">OWASP List</h2>
-            <button
-              onClick={toggleModal}
-              className="text-cyber-green hover:text-cyber-green/20 transition"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="p-4 overflow-y-auto h-[calc(100%-64px)] scrollbar-hide">
-            {Object.keys(groupedData).length > 0 ? (
-              Object.entries(groupedData).map(([chapterName, items]) => (
-                <div key={chapterName} className="mb-4">
-                  {/* Bouton pour afficher/masquer les sections d'un chapitre */}
-                  <button
-                    onClick={() => toggleChapter(chapterName)}
-                    className="w-full text-left text-cyber-green font-bold bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition"
-                  >
-                    {items[0].chapter_id} - {chapterName}
-                  </button>
-                  {expandedChapter === chapterName && (
-                    <div className="mt-2 pl-4">
-                      {items.map((item, index) => (
-                        <div key={index} className="mb-4">
-                          <h4 className="text-gray-300 font-semibold">
-                      {item.section_name} ({item.req_id})
-                          </h4>
-                          <p className="text-gray-400">{item.req_description}</p>
-                    </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))
-      ) : (
-        <p>Chargement des données...</p>
-      )}
     </div>
+    
+    {/* Panneau droit : Liste OWASP */}
+    {showOwasp && (
+      <aside className="fixed top-4 right-4 w-80 h-screen bg-cyber-gray/50 text-white shadow-lg rounded">
+        <div className="p-4 border-b border-gray-700">
+          <h2 className="text-lg font-bold">OWASP List</h2>
         </div>
-      )}
-    </div>
-  );
-};
+        <div
+          className="p-4 overflow-y-auto scrollbar-hide"
+          style={{ height: "calc(100vh - 68px)" }}
+        >
+          {Object.keys(groupedData).length > 0 ? (
+            Object.entries(groupedData).map(([chapterName, items]) => {
+              // Grouper les items par section_name dans ce chapitre
+              const groupBySection = items.reduce((acc, item) => {
+                const key = item.section_name || "Autres";
+                if (!acc[key]) {
+                  acc[key] = [];
+                }
+                acc[key].push(item);
+                return acc;
+              }, {} as Record<string, ASVSData[]>);
+              return (
+                <details key={chapterName} className="mb-4">
+                  <summary className="cursor-pointer text-left text-cyber-green font-bold bg-cyber-green/20 px-4 py-2 rounded hover:bg-gray-600 transition">
+                    {items[0].chapter_id} - {chapterName}
+                  </summary>
+                  <div className="mt-2 pl-4">
+                    {Object.entries(groupBySection).map(([sectionName, sectionItems]) => (
+                      <details key={sectionName} className="mb-4">
+                        <summary className="cursor-pointer text-left text-cyber-green font-bold hover:bg-cyber-black text-cyber-green px-3 py-1 rounded transition">
+                          {sectionName}
+                        </summary>
+                        <div className="mt-2 pl-4">
+                          {sectionItems.map((item, index) => (
+                            <div key={index} className="mb-4 bg-cyber-black border border-cyber-green p-3 rounded">
+                              <h4 className="text-gray-300 font-semibold">
+                                {item.req_id}
+                              </h4>
+                              <p className="text-gray-400">
+                                {item.req_description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                </details>
+              );
+            })
+          ) : (
+            <p>Loading data...</p>
+          )}
+        </div>
+      </aside>
+    )}   
+    {tests.length === 0 && (
+      <footer className="fixed bottom-0 left-1/2 transform -translate-x-1/2 text-gray-400 text-sm p-4">
+        Powered by Hermes Team • Licence MIT
+      </footer>
+    )}
+  </div>
+);
+}
 
 const groupByChapter = (data: ASVSData[]) => {
   return data.reduce((acc, item) => {
@@ -261,6 +335,5 @@ const groupByChapter = (data: ASVSData[]) => {
     return acc;
   }, {} as Record<string, ASVSData[]>);
 };
-
 
 export default Home;
