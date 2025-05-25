@@ -305,7 +305,7 @@ return (
                                 <h4 className="text-gray-300 font-semibold">{item.req_id}</h4>
                                 <p className="text-gray-400">{item.req_description}</p>
                               </div>
-                            <div onClick={() => toggleCheck(item.req_id)} className="cursor-pointer p-1">
+                            <div onClick={() => toggleCheck(item.req_id)} className="cursor-pointer">
                               {checkedAsvs[item.req_id] ? (
                                 <FiCheckCircle className="text-cyber-green" size={20} />
                               ) : (
