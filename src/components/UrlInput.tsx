@@ -22,7 +22,7 @@ const UrlInput = ({ onSubmit }: UrlInputProps) => {
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="Entrez l'URL du site à analyser..."
+          placeholder="Enter the URL of the site to analyze..."
           className="w-full px-6 py-4 bg-cyber-gray/50 border border-cyber-green/20 rounded-lg 
                    text-white placeholder-gray-400 focus:outline-none focus:ring-2 
                    focus:ring-cyber-green/50 transition-all duration-300 text-lg"
