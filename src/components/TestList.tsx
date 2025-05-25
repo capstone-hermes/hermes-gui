@@ -17,7 +17,7 @@ interface TestListProps {
 const TestList = ({ tests, onStatusChange }: TestListProps) => {
   return (
     <div className="w-full max-w-2xl mx-auto mt-8 space-y-4 animate-slideUp">
-      <h2 className="text-xl font-['JetBrains_Mono'] text-white mb-4">
+      <h2 className="text-xl text-white mb-4">
         Scan Results <span className="text-cyber-green">({tests.length} findings)</span>
       </h2>
       
@@ -28,7 +28,7 @@ const TestList = ({ tests, onStatusChange }: TestListProps) => {
                      hover:border-cyber-green/40 transition-all duration-300"
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-['JetBrains_Mono'] text-white">
+            <h3 className="text-lg text-white">
               {test.name}
             </h3>
             {/* Icône cliquable pour basculer le statut */}

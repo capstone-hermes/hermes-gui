@@ -211,7 +211,7 @@ return (
           </button>
         </a>
         <a
-          href="http://client"
+          href="http://localhost:80"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -300,7 +300,7 @@ return (
                         </summary>
                         <div className="mt-2 pl-4">
                           {sectionItems.map((item, index) => (
-                            <div key={index} className="mb-4 bg-cyber-black border border-cyber-green p-3 rounded flex items-start justify-between">
+                            <div key={index} className="mb-4 bg-cyber-black border border-cyber-green p-3 rounded flex items-center justify-between">
                               <div>
                                 <h4 className="text-gray-300 font-semibold">{item.req_id}</h4>
                                 <p className="text-gray-400">{item.req_description}</p>
